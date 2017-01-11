@@ -7,14 +7,18 @@
  
 #define LENARR 1000
  
-void main()
+void main(int argc, char *argv[])
 {
-	char *argv[2];
-	argv[0]=(char *)malloc(LENARR*sizeof(char));
-	argv[1]=(char *)malloc(LENARR*sizeof(char));
-	strcpy(argv[0],"./sort1");
-	strcpy(argv[1],"anurag.txt");
+	char filename[LENARR];
+	strcpy(filename, argv[1]);
 
-	execvp("./sort1",argv);
+	char *params[3];
+	params[0]=(char *)malloc(LENARR*sizeof(char));
+	params[1]=(char *)malloc(LENARR*sizeof(char));
+	strcpy(params[0],"./sort1");
+	strcpy(params[1],filename);
+	params[2]=NULL;
+
+	execvp("./sort1",params);
 	perror("Maa chud gayi...\n");
 }
