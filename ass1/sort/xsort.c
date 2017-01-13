@@ -18,7 +18,21 @@ void main(int argc, char *argv[])
 	strcpy(params[0],"./sort1");
 	strcpy(params[1],filename);
 	params[2]=NULL;
+	
+	/*
+	char *pathvar;
+	pathvar = getenv("PATH");
+	printf("%s\n",pathvar);
 
-	execvp("./sort1",params);
+	char newpath[LENARR];
+	strcpy(newpath,pathvar);
+	strcat(newpath,":/home/");
+	setenv("PATH",newpath,1);
+
+	char call[LENARR];
+	strcpy(call,"./sort1");
+	strcat(call," anurag.txt");*/
+	
+	execlp("/usr/bin/xterm","/usr/bin/xterm","-hold","-e",params[0],params[1],(char*)NULL);
 	perror("Maa chud gayi...\n");
 }
