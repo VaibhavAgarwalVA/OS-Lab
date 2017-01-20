@@ -34,5 +34,5 @@ void main(int argc, char *argv[])
 	strcat(call," anurag.txt");*/
 	
 	execlp("/usr/bin/xterm","/usr/bin/xterm","-hold","-e",params[0],params[1],(char*)NULL);
-	perror("Maa chud gayi...\n");
+	perror("Error!!\n");
 }

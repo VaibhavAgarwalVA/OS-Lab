@@ -24,83 +24,90 @@ int main()
 	while(fscanf(fp,"%d",&arr[i++])!=EOF)
 		n++;
 	fclose(fp);
-	scanf("%d",&k);
-
-	N=n;
-	i=0;
-	j=n-1;
-	status1=0;
-	status2=0;
-	while(n>10){
-		id=fork();
-		if(id==0){
-			if(status2) 
-				exit(1);
-			if(status1)
-				exit(1);
-			i=i;
-			j=i+n/2;
-			n=n/2+1;
-		}
-		else{
-			wait(&status1);
-			if(status1 && N!=n)
-				exit(1);
-			if(status2 && N!=n)
-				exit(1);
-
+	
+	do{
+		printf("Please enter the search query: ");
+		scanf("%d",&k);
+		if(k<=0)
+			break;
+		
+		N=n;
+		i=0;
+		j=n-1;
+		status1=0;
+		status2=0;
+		while(n>10){
 			id=fork();
 			if(id==0){
+				if(status2) 
+					exit(1);
 				if(status1)
 					exit(1);
-				if(status2)
-					exit(1);
-				i=j-(n+1)/2 +1;
-				j=j;
-				n=(n+1)/2;
+				i=i;
+				j=i+n/2;
+				n=n/2+1;
 			}
 			else{
-				wait(&status2);
-				if(status2 && N!=n)
-					exit(1);
+				wait(&status1);
 				if(status1 && N!=n)
 					exit(1);
-				if(!status1 && !status2 && N!=n)
-					exit(0);
-			}
-		}
+				if(status2 && N!=n)
+					exit(1);
 
-		//printf("%d to %d, %d terms\n",i,j,n);
-
-		if((status1 || status2) && N!=n){
-			exit(1);
-		}
-
-
-		if(n<=10){
-			flag=0;
-			for(it=i;it<=j;it++){
-				if(arr[it]==k){
-					flag=1;
-					if(n!=N)
+				id=fork();
+				if(id==0){
+					if(status1)
 						exit(1);
+					if(status2)
+						exit(1);
+					i=j-(n+1)/2 +1;
+					j=j;
+					n=(n+1)/2;
+				}
+				else{
+					wait(&status2);
+					if(status2 && N!=n)
+						exit(1);
+					if(status1 && N!=n)
+						exit(1);
+					if(!status1 && !status2 && N!=n)
+						exit(0);
 				}
 			}
-			if(n==N && flag){
-				status1=1;
-				status2=1;
+
+			//printf("%d to %d, %d terms\n",i,j,n);
+
+			if((status1 || status2) && N!=n){
+				exit(1);
 			}
-			exit(0);
-		}
 
-		if((status1 || status2) && N==n){
-			printf("Found!!\n");
-			break;
-		}
 
-		if(n==N && !status1 && !status2){
-			printf("Not found!\n");
-			break;
+			if(n<=10){
+				flag=0;
+				for(it=i;it<=j;it++){
+					if(arr[it]==k){
+						flag=1;
+						if(n!=N)
+							exit(1);
+					}
+				}
+				if(n==N && flag){
+					status1=1;
+					status2=1;
+				}
+				exit(0);
+			}
+
+			if((status1 || status2) && N==n){
+				printf("Found!!\n");
+				break;
+			}
+
+			if(n==N && !status1 && !status2){
+				printf("Not found!\n");
+				break;
+			}
 		}
-	}
+	}while(1);
+	printf("Exitted! \n");
 }
