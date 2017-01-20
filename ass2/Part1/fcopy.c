@@ -42,11 +42,12 @@ int main(int argc, char *argv[])
 		char buf[READSIZE];
 		char arr[1];
 		read(ret[0],arr,1);
-		//printf("Parent is ready for next read/write!\n");
 		
 		while(readbytes=read(file1des,buf,READSIZE)){
 			write(fd[1],buf,readbytes);
-			//printf("Parent has read from file1 and written something on buffer!\n");
+			printf("#1\n");                                                //debug
+			sleep(0.5);                                                    //debug
+			/**/
 			read(ret[0],arr,1);
 			if(arr[0]=='-1'){
 				printf("Terminated due to error!\n");
@@ -56,7 +57,9 @@ int main(int argc, char *argv[])
 				printf("Successfully completed copy!!\n");
 				return 0;
 			}
-			//printf("Parent is ready for next read/write!\n");
+			printf("#4\n\n");                                                //debug
+			sleep(1);                                                        //debug
+			/**/
 		}
 	}
 	else{
@@ -69,6 +72,9 @@ int main(int argc, char *argv[])
 		char arr[1];
 
 		while(readbytes=read(fd[0],buf,READSIZE)){
+			printf("#2\n");                                                //debug
+			sleep(1.5);                                                    //debug
+			/**/
 			strcpy(arr,"0");
 			if(readbytes<=0){
 				perror("Error in child from reading from Pipe1\n");
@@ -85,7 +91,9 @@ int main(int argc, char *argv[])
 			}
 
 			write(ret[1],arr,1);
-			//printf("Child acknowledges..\n");
+			printf("#3\n");                                                //debug
+			sleep(2);                                                      //debug
+			/**/
 			if(arr[0]=='-1' || arr[0]=='1')
 				exit(1);
 		}
