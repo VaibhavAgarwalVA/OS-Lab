@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	pipe(ret);
 	
 	int id = fork();
-	if(id!=0){
+	if(id!=0){         //parent process
 		close(fd[0]);  //close read for parent process
 		close(ret[1]); //close write for parent process
 
@@ -46,19 +46,19 @@ int main(int argc, char *argv[])
 		while(readbytes=read(file1des,buf,READSIZE)){
 			write(fd[1],buf,readbytes);
 			printf("#1\n");                                                //debug
-			sleep(0.5);                                                    //debug
+			//sleep(0.5);                                                    //debug
 			/**/
 			read(ret[0],arr,1);
 			if(arr[0]=='-1'){
 				printf("Terminated due to error!\n");
 				return 0;
 			}
-			if(arr[0]=='1'){
+			if(arr[0]=='0' && readbytes<100){
 				printf("Successfully completed copy!!\n");
 				return 0;
 			}
 			printf("#4\n\n");                                                //debug
-			sleep(1);                                                        //debug
+			//sleep(1);                                                        //debug
 			/**/
 		}
 	}
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
 		while(readbytes=read(fd[0],buf,READSIZE)){
 			printf("#2\n");                                                //debug
-			sleep(1.5);                                                    //debug
+			//sleep(1.5);                                                    //debug
 			/**/
 			strcpy(arr,"0");
 			if(readbytes<=0){
@@ -81,18 +81,14 @@ int main(int argc, char *argv[])
 				strcpy(arr,"-1");
 			}
 			int signal = write(file2des,buf,readbytes);
-			if(signal==readbytes && readbytes<100){
-				printf("File copied successfully!!\n");
-				strcpy(arr,"1");
-			}
 			if(signal!=readbytes){
 				perror("Error in writing to external file File2 in child!\n");
 				strcpy(arr,"-1");
 			}
 
-			write(ret[1],arr,1);
+			write(ret[1],arr,1);    //acknowledgement back to parent
 			printf("#3\n");                                                //debug
-			sleep(2);                                                      //debug
+			//sleep(2);                                                      //debug
 			/**/
 			if(arr[0]=='-1' || arr[0]=='1')
 				exit(1);
