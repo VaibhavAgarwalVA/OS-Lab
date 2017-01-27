@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <errno.h>
+#include <time.h>
 
 #define INTMAX 1000
 #define STRMAX 1000
@@ -40,7 +42,7 @@ int main()
 		}
 		while(full[i]==' ' && i<l) i++;
 
-		// printf("**%s**\n",str);
+		//printf("**%s**\n",str);
 
 		if(strcmp(str,"cd")==0){
 			char cd[STRMAX];
@@ -105,6 +107,8 @@ int main()
 				extra[j++]=full[i];
 			while(full[i]==' ' && i<l) i++;
 
+			//printf("%s %d\n",extra,j);
+
 			if(j==0){
 				DIR *dp;
 				struct dirent *sd; 
@@ -118,8 +122,42 @@ int main()
 				closedir(dp);
 			}
 			else{
+				//printf("here\n");
 				if(strcmp(extra,"-l")==0){
-					printf("-l\n");
+					DIR *direct;
+					struct dirent *dirread;
+					int fstatus;
+					direct=opendir(cwd);
+					//printf("here\n");
+					if(direct==NULL)
+						perror("Empty Directory.");
+					else{
+						//printf("here\n");
+						while((dirread=readdir(direct))!=NULL){
+							//printf("herein\n");
+							if(strcmp(dirread->d_name,"..")==0 || strcmp(dirread->d_name,".")==0)
+								continue;
+							struct stat status;
+							fstatus=stat(dirread->d_name, &status);
+							if(fstatus>=0){
+								printf( (S_ISDIR(status.st_mode)) ? "d" : "-");
+								printf( (status.st_mode & S_IRUSR) ? "r" : "-");
+								printf( (status.st_mode & S_IWUSR) ? "w" : "-");
+								printf( (status.st_mode & S_IXUSR) ? "x" : "-");
+								printf( (status.st_mode & S_IRGRP) ? "r" : "-");
+								printf( (status.st_mode & S_IWGRP) ? "w" : "-");
+								printf( (status.st_mode & S_IXGRP) ? "x" : "-");
+								printf( (status.st_mode & S_IROTH) ? "r" : "-");
+								printf( (status.st_mode & S_IWOTH) ? "w" : "-");
+								printf( (status.st_mode & S_IXOTH) ? "x" : "-");
+								char *access = ctime(&status.st_mtime);
+								int ll = strlen(access);
+								access[ll-1]='\0';
+								printf(" %5lu  %5lu  %s  %s\n",status.st_nlink,status.st_size,access,dirread->d_name);
+							}
+						}
+					}
+					closedir(direct);
 				}
 				else
 					printf("Incorrect command format!\n");
