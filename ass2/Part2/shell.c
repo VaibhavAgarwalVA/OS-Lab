@@ -43,9 +43,6 @@ int copywala(char *file1, char *file2)
 		
 		while(readbytes=read(file1des,buf,READSIZE)){
 			write(fd[1],buf,readbytes);
-			//printf("#1\n");                                                //debug
-			//sleep(0.5);                                                    //debug
-			/**/
 			read(ret[0],arr,1);
 			if(arr[0]=='-1'){
 				printf("Terminated due to error!\n");
@@ -55,9 +52,6 @@ int copywala(char *file1, char *file2)
 				printf("Successfully completed copy!!\n");
 				return 0;
 			}
-			//printf("#4\n\n");                                                //debug
-			//sleep(1);                                                        //debug
-			/**/
 		}
 	}
 	else{
@@ -66,13 +60,9 @@ int copywala(char *file1, char *file2)
 
 		char buf[READSIZE];
 		write(ret[1],"0",1);
-		//printf("Child acknowledges..\n");
 		char arr[1];
 
 		while(readbytes=read(fd[0],buf,READSIZE)){
-			//printf("#2\n");                                                //debug
-			//sleep(1.5);                                                    //debug
-			/**/
 			strcpy(arr,"0");
 			if(readbytes<=0){
 				perror("Error in child from reading from Pipe1\n");
@@ -85,11 +75,10 @@ int copywala(char *file1, char *file2)
 			}
 
 			write(ret[1],arr,1);    //acknowledgement back to parent
-			//printf("#3\n");                                                //debug
-			//sleep(2);                                                      //debug
-			/**/
 			if(arr[0]=='-1' || arr[0]=='1')
-				return 1;
+				exit(1);
+			if(signal<100)
+				exit(1);
 		}
 	}
 	close(file2des);
@@ -288,7 +277,22 @@ int main()
 			break;
 		}
 		else{
-			printf("Executable file!\n");
+			int id = fork();
+			if(id==0){
+				if(full[l-1]=='&')
+					full[--l]='\0';
+				char *params[STRMAX];
+				params[0]=(char *)malloc(STRMAX*sizeof(char));
+				strcpy(params[0],full);
+				params[1]=NULL;
+				execlp("/usr/bin/xterm","/usr/bin/xterm","-hold","-e",params[0],params[1],(char*)NULL);
+				perror("Error!!\n");
+			}
+			else{
+				if(full[l-1]!='&')
+					wait(NULL);
+				printf("Lets move ahead! App is in background!!\n");
+			}
 		}
 	}while(1);
 	return 0;
