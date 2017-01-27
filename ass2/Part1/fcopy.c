@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 		
 		while(readbytes=read(file1des,buf,READSIZE)){
 			write(fd[1],buf,readbytes);
-			printf("#1\n");                                                //debug
+			//printf("#1\n");                                                //debug
 			//sleep(0.5);                                                    //debug
 			/**/
 			read(ret[0],arr,1);
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 				printf("Successfully completed copy!!\n");
 				return 0;
 			}
-			printf("#4\n\n");                                                //debug
+			//printf("#4\n\n");                                                //debug
 			//sleep(1);                                                        //debug
 			/**/
 		}
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 		char arr[1];
 
 		while(readbytes=read(fd[0],buf,READSIZE)){
-			printf("#2\n");                                                //debug
+			//printf("#2\n");                                                //debug
 			//sleep(1.5);                                                    //debug
 			/**/
 			strcpy(arr,"0");
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 			}
 
 			write(ret[1],arr,1);    //acknowledgement back to parent
-			printf("#3\n");                                                //debug
+			//printf("#3\n");                                                //debug
 			//sleep(2);                                                      //debug
 			/**/
 			if(arr[0]=='-1' || arr[0]=='1')
