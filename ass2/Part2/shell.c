@@ -277,21 +277,125 @@ int main()
 			break;
 		}
 		else{
+			int lj = strlen(str);
+			while(full[i]!='<' && full[i]!='>' && full[i]!='&' && i<l)
+				str[lj++]=full[i++];
+			while(full[i]==' ' && i<l) i++;
+			str[lj]='\0';
+			//printf("*%s*\n",str);
+
 			int id = fork();
 			if(id==0){
-				if(full[l-1]=='&')
-					full[--l]='\0';
+				if(full[i]=='<'){
+					char inpfile[STRMAX];
+					j=0;
+					while(inpfile[j])
+						inpfile[j++]='\0';
+					j=0;
+					
+					i++;
+					while(full[i]==' ' && i<l) i++;
+					
+					for(;i<l && full[i]!=' ';i++)
+						inpfile[j++]=full[i];
+					inpfile[j]='\0';
+					while(full[i]==' ' && i<l) i++;
+
+					// printf("%s\n",inpfile);
+					int ifd = open(inpfile, O_RDONLY);
+				    if(ifd < 0)
+				       fprintf(stderr, "Unable to open input file in read mode...\n");
+
+				   	close(0);
+				   	dup(ifd);
+				   	close(ifd);
+
+				   	if(full[i]=='>'){
+						char outfile[STRMAX];
+						j=0;
+						while(outfile[j])
+							outfile[j++]='\0';
+						j=0;
+
+						i++;
+						while(full[i]==' ' && i<l) i++;
+
+						for(;i<l && full[i]!=' ';i++)
+							outfile[j++]=full[i];
+						outfile[j]='\0';
+						while(full[i]==' ' && i<l) i++;
+
+						// printf("%s\n",outfile);
+						int ofd = open(outfile, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+					    if(ofd < 0)
+					       fprintf(stderr, "Unable to open input file in write mode...\n");
+
+					   	close(1);
+					   	dup(ofd);
+					   	close(ofd);
+					}
+				}
+				else if(full[i]=='>'){
+					char outfile[STRMAX];
+					j=0;
+					while(outfile[j])
+						outfile[j++]='\0';
+					j=0;
+					
+					i++;
+					while(full[i]==' ' && i<l) i++;
+
+					for(;i<l && full[i]!=' ';i++)
+						outfile[j++]=full[i];
+					outfile[j]='\0';
+					while(full[i]==' ' && i<l) i++;
+
+					// printf("%s\n",outfile);
+					int ofd = open(outfile, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+				    if(ofd < 0)
+				       fprintf(stderr, "Unable to open input file in read mode...\n");
+
+				   	close(1);
+				   	dup(ofd);
+				   	close(ofd);
+
+				   	if(full[i]=='<'){
+						char inpfile[STRMAX];
+						j=0;
+						while(inpfile[j])
+							inpfile[j++]='\0';
+						j=0;
+
+						i++;
+						while(full[i]==' ' && i<l) i++;
+						
+						for(;i<l && full[i]!=' ';i++)
+							inpfile[j++]=full[i];
+						inpfile[j]='\0';
+						while(full[i]==' ' && i<l) i++;
+
+						// printf("%s\n",inpfile);
+						int ifd = open(inpfile, O_RDONLY);
+					    if(ifd < 0)
+					       fprintf(stderr, "Unable to open input file in read mode...\n");
+
+					   	close(0);
+					   	dup(ifd);
+					   	close(ifd);
+					}
+				}
 				char *params[STRMAX];
-				params[0]=(char *)malloc(STRMAX*sizeof(char));
-				strcpy(params[0],full);
-				params[1]=NULL;
-				execlp("/usr/bin/xterm","/usr/bin/xterm","-hold","-e",params[0],params[1],(char*)NULL);
+				params[0]=strtok(str," ");
+				int kk=0;
+				while(params[++kk]=strtok(NULL," "));
+				execvp(params[0],params);
 				perror("Error!!\n");
 			}
 			else{
 				if(full[l-1]!='&')
 					wait(NULL);
-				printf("Lets move ahead! App is in background!!\n");
+				else
+					printf("App is running in background!!\n");
 			}
 		}
 	}while(1);
