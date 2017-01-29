@@ -86,6 +86,53 @@ int copywala(char *file1, char *file2)
 	return 1;
 }
 
+void trim(char * string)
+{
+    int lastIndex, lastSpaceIndex, i, j;
+ 
+    /*
+     * Trims leading white spaces
+     */
+    lastSpaceIndex = 0;
+ 
+    /* Finds the last index of whitespace character */
+    while(string[lastSpaceIndex] == ' ' || string[lastSpaceIndex] == '\t' || string[lastSpaceIndex] == '\n')
+    {
+        lastSpaceIndex++;
+    }
+ 
+ 
+    /* Shits all trailing characters to its left */
+    i = 0;
+    while(string[i + lastSpaceIndex] != '\0')
+    {
+        string[i] = string[i + lastSpaceIndex];
+        i++;
+    }
+    string[i] = '\0'; //Make sure that string is NULL terminated
+ 
+ 
+ 
+    /*
+     * Trims trailing white spaces
+     */
+ 
+    /* Finds the last non white space character */
+    i = 0;
+    while(string[i] != '\0')
+    {
+        if(string[i] != ' ' && string[i] != '\t' && string[i] != '\n')
+        {
+            lastIndex = i;
+        }
+ 
+        i++;
+    }
+ 
+    /* Mark the next character to last non white space character as NULL */
+    string[lastIndex + 1] = '\0';
+}
+
 int main()
 {
 	do{
@@ -277,99 +324,112 @@ int main()
 			break;
 		}
 		else{
-			int lj = strlen(str);
-			while(full[i]!='<' && full[i]!='>' && full[i]!='&' && i<l)
-				str[lj++]=full[i++];
-			while(full[i]==' ' && i<l) i++;
-			str[lj]='\0';
-			//printf("*%s*\n",str);
 
-			int id = fork();
-			if(id==0){
-				if(full[i]=='<'){
-					char inpfile[STRMAX];
-					j=0;
-					while(inpfile[j])
-						inpfile[j++]='\0';
-					j=0;
-					
-					i++;
-					while(full[i]==' ' && i<l) i++;
-					
-					for(;i<l && full[i]!=' ';i++)
-						inpfile[j++]=full[i];
-					inpfile[j]='\0';
-					while(full[i]==' ' && i<l) i++;
+			int ct=0;
+			for(i=0;i<l;i++){
+				if(full[i]=='|')
+					ct++;
+			}
+			if(ct){
+				char *ar1, *ar2, *ar3;
+				ar1=strtok(full,"|");
+				ar2=strtok(NULL,"|");
+				ar3=strtok(NULL,"|");
+				trim(ar1);
+				trim(ar2);
+				if(ct==2) trim(ar3);
+				// printf("**%s**%s**%s**\n",ar1,ar2,ar3);
+				int fd[2];
+				int fd1[2];
+				pipe(fd);
+				pipe(fd1);
 
-					// printf("%s\n",inpfile);
-					int ifd = open(inpfile, O_RDONLY);
-				    if(ifd < 0)
-				       fprintf(stderr, "Unable to open input file in read mode...\n");
+				int id=fork();
+				if(id==0){
+					close(1);
+					close(fd[0]);
+					dup(fd[1]);
 
-				   	close(0);
-				   	dup(ifd);
-				   	close(ifd);
+					char *param[2];
+					param[0]=(char *)malloc(STRMAX*sizeof(char));
+					strcpy(param[0],ar1);
+					param[1]=NULL;
+					execvp(param[0],param);
+					perror("Error in first file of piping!!\n");
+				}
+				else{
+					wait(NULL);
 
-				   	if(full[i]=='>'){
-						char outfile[STRMAX];
-						j=0;
-						while(outfile[j])
-							outfile[j++]='\0';
-						j=0;
-
-						i++;
-						while(full[i]==' ' && i<l) i++;
-
-						for(;i<l && full[i]!=' ';i++)
-							outfile[j++]=full[i];
-						outfile[j]='\0';
-						while(full[i]==' ' && i<l) i++;
-
-						// printf("%s\n",outfile);
-						int ofd = open(outfile, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-					    if(ofd < 0)
-					       fprintf(stderr, "Unable to open input file in write mode...\n");
-
-					   	close(1);
-					   	dup(ofd);
-					   	close(ofd);
+					int id1=fork();
+					if(id1==0){
+						close(0);
+						close(fd[1]);
+						dup(fd[0]);
+						if(ct==2){
+							close(1);
+							close(fd1[0]);
+							dup(fd1[1]);
+						}
+						char *param[2];
+						param[0]=(char *)malloc(STRMAX*sizeof(char));
+						strcpy(param[0],ar2);
+						param[1]=NULL;
+						execvp(param[0],param);
+						perror("Error in second file of piping!!\n");
+					}
+					else{
+						wait(NULL);
+						if(ct==2){
+							int id2=fork();
+							if(id2==0){
+								close(0);
+								close(fd1[1]);
+								dup(fd1[0]);
+								char *param[2];
+								param[0]=(char *)malloc(STRMAX*sizeof(char));
+								strcpy(param[0],ar3);
+								param[1]=NULL;
+								execvp(param[0],param);
+								perror("Error in third file of piping!!\n");
+							}
+							else{
+								wait(NULL);
+								//printf("Done with piping!\n");
+							}
+						}
+						else{
+							;
+							//printf("Done with piping!\n");
+						}
 					}
 				}
-				else if(full[i]=='>'){
-					char outfile[STRMAX];
-					j=0;
-					while(outfile[j])
-						outfile[j++]='\0';
-					j=0;
-					
-					i++;
-					while(full[i]==' ' && i<l) i++;
+			}
 
-					for(;i<l && full[i]!=' ';i++)
-						outfile[j++]=full[i];
-					outfile[j]='\0';
-					while(full[i]==' ' && i<l) i++;
+			else{
+				i=0;
+				while(str[i])
+					str[i++]='\0';
+				i=0;
+				int lj = 0;
+				while(full[i]==' ' && i<l) i++;
+				while(full[i]!='<' && full[i]!='>' && full[i]!='&' && i<l)
+					str[lj++]=full[i++];
+				while(full[i]==' ' && i<l) i++;
+				str[lj]='\0';
 
-					// printf("%s\n",outfile);
-					int ofd = open(outfile, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-				    if(ofd < 0)
-				       fprintf(stderr, "Unable to open input file in read mode...\n");
-
-				   	close(1);
-				   	dup(ofd);
-				   	close(ofd);
-
-				   	if(full[i]=='<'){
+				int id = fork();
+				if(id==0){
+					if(full[i]=='<'){
 						char inpfile[STRMAX];
 						j=0;
 						while(inpfile[j])
 							inpfile[j++]='\0';
 						j=0;
-
+						
 						i++;
 						while(full[i]==' ' && i<l) i++;
 						
-						for(;i<l && full[i]!=' ';i++)
+						for(;i<l && full[i]!=' ' && full[i]!='>'&& full[i]!='&';i++)
 							inpfile[j++]=full[i];
 						inpfile[j]='\0';
 						while(full[i]==' ' && i<l) i++;
@@ -382,20 +442,96 @@ int main()
 					   	close(0);
 					   	dup(ifd);
 					   	close(ifd);
+
+					   	if(full[i]=='>'){
+							char outfile[STRMAX];
+							j=0;
+							while(outfile[j])
+								outfile[j++]='\0';
+							j=0;
+
+							i++;
+							while(full[i]==' ' && i<l) i++;
+
+							for(;i<l && full[i]!=' '&& full[i]!='&';i++)
+								outfile[j++]=full[i];
+							outfile[j]='\0';
+							while(full[i]==' ' && i<l) i++;
+
+							// printf("%s\n",outfile);
+							int ofd = open(outfile, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+						    if(ofd < 0)
+						       fprintf(stderr, "Unable to open input file in write mode...\n");
+
+						   	close(1);
+						   	dup(ofd);
+						   	close(ofd);
+						}
 					}
+					else if(full[i]=='>'){
+						char outfile[STRMAX];
+						j=0;
+						while(outfile[j])
+							outfile[j++]='\0';
+						j=0;
+						
+						i++;
+						while(full[i]==' ' && i<l) i++;
+
+						for(;i<l && full[i]!=' '&& full[i]!='<'&& full[i]!='&';i++)
+							outfile[j++]=full[i];
+						outfile[j]='\0';
+						while(full[i]==' ' && i<l) i++;
+
+						// printf("%s\n",outfile);
+						int ofd = open(outfile, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+					    if(ofd < 0)
+					       fprintf(stderr, "Unable to open input file in read mode...\n");
+
+					   	close(1);
+					   	dup(ofd);
+					   	close(ofd);
+
+					   	if(full[i]=='<'){
+							char inpfile[STRMAX];
+							j=0;
+							while(inpfile[j])
+								inpfile[j++]='\0';
+							j=0;
+
+							i++;
+							while(full[i]==' ' && i<l) i++;
+							
+							for(;i<l && full[i]!=' '&& full[i]!='&';i++)
+								inpfile[j++]=full[i];
+							inpfile[j]='\0';
+							while(full[i]==' ' && i<l) i++;
+
+							// printf("%s\n",inpfile);
+							int ifd = open(inpfile, O_RDONLY);
+						    if(ifd < 0)
+						       fprintf(stderr, "Unable to open input file in read mode...\n");
+
+						   	close(0);
+						   	dup(ifd);
+						   	close(ifd);
+						}
+					}
+					char *params[STRMAX];
+					params[0]=strtok(str," ");
+					int kk=0;
+					while(params[++kk]=strtok(NULL," "));
+					execvp(params[0],params);
+					perror("Error!!\n");
 				}
-				char *params[STRMAX];
-				params[0]=strtok(str," ");
-				int kk=0;
-				while(params[++kk]=strtok(NULL," "));
-				execvp(params[0],params);
-				perror("Error!!\n");
-			}
-			else{
-				if(full[l-1]!='&')
-					wait(NULL);
-				else
-					printf("App is running in background!!\n");
+				else{
+					if(full[l-1]!='&'){
+						wait(NULL);
+						printf("Completed wait!\n");
+					}
+					else
+						printf("App is running in background!!\n");
+				}
 			}
 		}
 	}while(1);
