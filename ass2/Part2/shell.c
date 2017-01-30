@@ -350,11 +350,12 @@ int main()
 					close(fd[0]);
 					dup(fd[1]);
 
-					char *param[2];
-					param[0]=(char *)malloc(STRMAX*sizeof(char));
-					strcpy(param[0],ar1);
-					param[1]=NULL;
-					execvp(param[0],param);
+					char *params[STRMAX];
+					params[0]=strtok(ar1," ");
+					int kk=0;
+					while(params[++kk]=strtok(NULL," "));
+					params[kk]=NULL;
+					execvp(params[0],params);
 					perror("Error in first file of piping!!\n");
 				}
 				else{
@@ -370,11 +371,12 @@ int main()
 							close(fd1[0]);
 							dup(fd1[1]);
 						}
-						char *param[2];
-						param[0]=(char *)malloc(STRMAX*sizeof(char));
-						strcpy(param[0],ar2);
-						param[1]=NULL;
-						execvp(param[0],param);
+						char *params[STRMAX];
+						params[0]=strtok(ar2," ");
+						int kk=0;
+						while(params[++kk]=strtok(NULL," "));
+						params[kk]=NULL;
+						execvp(params[0],params);
 						perror("Error in second file of piping!!\n");
 					}
 					else{
@@ -385,11 +387,12 @@ int main()
 								close(0);
 								close(fd1[1]);
 								dup(fd1[0]);
-								char *param[2];
-								param[0]=(char *)malloc(STRMAX*sizeof(char));
-								strcpy(param[0],ar3);
-								param[1]=NULL;
-								execvp(param[0],param);
+								char *params[STRMAX];
+								params[0]=strtok(ar3," ");
+								int kk=0;
+								while(params[++kk]=strtok(NULL," "));
+								params[kk]=NULL;
+								execvp(params[0],params);	
 								perror("Error in third file of piping!!\n");
 							}
 							else{
@@ -517,20 +520,35 @@ int main()
 						   	close(ifd);
 						}
 					}
-					char *params[STRMAX];
-					params[0]=strtok(str," ");
-					int kk=0;
-					while(params[++kk]=strtok(NULL," "));
-					execvp(params[0],params);
-					perror("Error!!\n");
+					if(full[l-1]!='&'){
+						char *params[STRMAX];
+						params[0]=strtok(str," ");
+						int kk=0;
+						while(params[++kk]=strtok(NULL," "));
+						params[kk]=NULL;
+						execvp(params[0],params);
+						perror("Error!!\n");
+						exit(1);
+					}
+					else{
+						char *params[STRMAX];
+						params[0]=strtok(str," ");
+						int kk=0;
+						while(params[++kk]=strtok(NULL," "));
+						params[kk]=NULL;
+						execlp("/usr/bin/xterm","/usr/bin/xterm","-hold","-e",params[0],params,(char*)NULL);
+						perror("Error!!\n");
+						exit(1);
+					}
 				}
 				else{
 					if(full[l-1]!='&'){
 						wait(NULL);
 						printf("Completed wait!\n");
 					}
-					else
+					else{
 						printf("App is running in background!!\n");
+					}
 				}
 			}
 		}
