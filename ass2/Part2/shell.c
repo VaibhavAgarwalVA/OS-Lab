@@ -323,8 +323,8 @@ int main()
 		else if(strcmp(str,"exit")==0){
 			break;
 		}
-		else{
 
+		else{
 			int ct=0;
 			for(i=0;i<l;i++){
 				if(full[i]=='|')
@@ -357,10 +357,10 @@ int main()
 					params[kk]=NULL;
 					execvp(params[0],params);
 					perror("Error in first file of piping!!\n");
+					exit(0);
 				}
 				else{
 					wait(NULL);
-
 					int id1=fork();
 					if(id1==0){
 						close(0);
@@ -378,6 +378,7 @@ int main()
 						params[kk]=NULL;
 						execvp(params[0],params);
 						perror("Error in second file of piping!!\n");
+						exit(0);
 					}
 					else{
 						wait(NULL);
@@ -394,15 +395,12 @@ int main()
 								params[kk]=NULL;
 								execvp(params[0],params);	
 								perror("Error in third file of piping!!\n");
+								exit(0);
 							}
 							else{
 								wait(NULL);
 								//printf("Done with piping!\n");
 							}
-						}
-						else{
-							;
-							//printf("Done with piping!\n");
 						}
 					}
 				}
@@ -528,7 +526,6 @@ int main()
 						params[kk]=NULL;
 						execvp(params[0],params);
 						perror("Error!!\n");
-						exit(1);
 					}
 					else{
 						char *params[STRMAX];
@@ -536,9 +533,8 @@ int main()
 						int kk=0;
 						while(params[++kk]=strtok(NULL," "));
 						params[kk]=NULL;
-						execlp("/usr/bin/xterm","/usr/bin/xterm","-hold","-e",params[0],params,(char*)NULL);
+						execlp("/usr/bin/xterm","/usr/bin/xterm","-e",params[0],params,(char*)NULL);
 						perror("Error!!\n");
-						exit(1);
 					}
 				}
 				else{
