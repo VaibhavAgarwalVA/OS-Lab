@@ -58,10 +58,8 @@ int main()
 				}
 				break;
 			}
-			else{	
-				;	
-			}
 		}
+		printf("hurray!\n");
 	}
 	else{
 		int i,j;
@@ -80,14 +78,13 @@ int main()
 					}
 					V(J);
 				}
-				printf("Terminated!\n");
 				break;
 			}
 			else{
 				;	
 			}
 		}
-		// printf("Terminated!\n");
+		printf("yippee!\n");
 	}
 	return 0;
 }
