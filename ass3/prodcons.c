@@ -3,6 +3,7 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
+#include <signal.h>
 
 #define sum 20
 #define in 21
@@ -34,57 +35,73 @@ int main()
 	K = semget(IPC_PRIVATE, 1, 0777|IPC_CREAT);
 	L = semget(IPC_PRIVATE, 1, 0777|IPC_CREAT);
 
-	semctl(I, 0, SETVAL, 20);
+	semctl(I, 0, SETVAL, 0);
 	semctl(J, 0, SETVAL, 1);
 	semctl(K, 0, SETVAL, 0);
-	semctl(L, 0, SETVAL, 1);
 
 	pop.sem_num = vop.sem_num = 0;
 	pop.sem_flg = vop.sem_flg = 0;
 	pop.sem_op = -1 ; vop.sem_op = 1 ;
+
+	pid_t array[n+1];
+	pid_t arr[m+1];
 	
 	int id = fork();
 	if(id==0){
+		arr[0]= getpid();
+		// printf("PID : %d\n",arr[0]);
 		int i,j;
 		for(i=0;i<m;i++){
 			int id1 = fork();
 			if(id1==0){
+				arr[i+1]= getpid();
+				// printf("PID : %d\n",arr[i+1]);
 				for(j=1;j<=50;j++){
 					P(J);
 					buff[buff[in]]=j;
 					buff[in]= (buff[in]+1)%sum;
-					printf("writes : %d, in : %d \n",j,buff[in]);
+					//printf("writes : %d, in : %d \n",j,buff[in]);
 					V(K);
 				}
 				break;
 			}
 		}
-		printf("hurray!\n");
+		// printf("hurray!\n");
 	}
 	else{
 		int i,j;
+		array[0]= getpid();
+		// printf("Cons PID : %d\n",array[0]);
 		for(i=0;i<n;i++){
 			int id2 = fork();
 			if(id2==0){
+				array[i+1]= getpid();
+				// printf("Cons PID : %d\n",array[i+1]);
 				int flag=0;
 				for(j=0;!flag;j++){
 					P(K);
 					buff[sum]+= buff[buff[out]];
 					buff[out]= (buff[out]+1)%sum;
-					printf("sum : %d, out : %d \n",buff[sum],buff[out]);
+					//printf("sum : %d, out : %d \n",buff[sum],buff[out]);
 					if(buff[sum]==m*25*51){
 						printf("Obtained sum : %d \n",buff[sum]);
 						flag=1;
+						buff[23]=1;	
 					}
 					V(J);
 				}
 				break;
 			}
-			else{
-				;	
-			}
 		}
-		printf("yippee!\n");
+		// printf("yippee!\n");
+	}
+	if(getpid()!=array[0]){
+		// printf("%d waiting!\n",getpid());
+		wait(NULL);
+	}
+	else{
+		while(!buff[23]);
+		// printf("%d kill karega!!\n",getpid());
 	}
 	return 0;
 }
