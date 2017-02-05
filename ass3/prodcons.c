@@ -35,9 +35,10 @@ int main()
 	K = semget(IPC_PRIVATE, 1, 0777|IPC_CREAT);
 	L = semget(IPC_PRIVATE, 1, 0777|IPC_CREAT);
 
-	semctl(I, 0, SETVAL, 0);
+	semctl(I, 0, SETVAL, 20);
 	semctl(J, 0, SETVAL, 1);
-	semctl(K, 0, SETVAL, 0);
+	semctl(K, 0, SETVAL, 1);
+	semctl(L, 0, SETVAL, 0);
 
 	pop.sem_num = vop.sem_num = 0;
 	pop.sem_flg = vop.sem_flg = 0;
@@ -57,11 +58,13 @@ int main()
 				arr[i+1]= getpid();
 				// printf("PID : %d\n",arr[i+1]);
 				for(j=1;j<=50;j++){
+					P(I);
 					P(J);
 					buff[buff[in]]=j;
 					buff[in]= (buff[in]+1)%sum;
 					//printf("writes : %d, in : %d \n",j,buff[in]);
-					V(K);
+					V(J);
+					V(L);
 				}
 				break;
 			}
@@ -79,6 +82,7 @@ int main()
 				// printf("Cons PID : %d\n",array[i+1]);
 				int flag=0;
 				for(j=0;!flag;j++){
+					P(L);
 					P(K);
 					buff[sum]+= buff[buff[out]];
 					buff[out]= (buff[out]+1)%sum;
@@ -88,7 +92,8 @@ int main()
 						flag=1;
 						buff[23]=1;	
 					}
-					V(J);
+					V(K);
+					V(I);
 				}
 				break;
 			}
