@@ -23,32 +23,52 @@ int main(int argc, char *argv[])
 	shmid = shmget(2602, 101*sizeof(memo), IPC_CREAT | 0777);
 	buff = (memo *) shmat(shmid,NULL,0);
 
+	char fname[20], lname[20];
+	int rno, i=0, j;
+	float cg;
+	FILE *fp;
+	fp = fopen(filename,"r");
+	while(fscanf(fp," %s %s %d %f", fname, lname, &rno, &cg)!=EOF){
+		strcpy(buff[i].firstname,fname);
+		strcpy(buff[i].lastname,lname);
+		buff[i].roll = rno;
+		buff[i].cgpa = cg;
+		i++;
+	}
+	fclose(fp);
+	printf("Fetched %d records!\n",i);
+
+	printf("\n*******************************************\n");
+	printf("Shared memory looks like: \n");
+	printf("*******************************************\n");
+	for(j=0;j<i;j++){
+		printf("%s %s %d %f\n", buff[j].firstname, buff[j].lastname, buff[j].roll, buff[j].cgpa);
+	}
+	printf("*******************************************\n");
+	printf("*******************************************\n\n");
+
+
+	int change = 1;
 	do{
-		char fname[20], lname[20];
-		int rno, i=0, j;
-		float cg;
-		FILE *fp;
-		fp = fopen(filename,"r");
-		while(fscanf(fp," %s %s %d %f", fname, lname, &rno, &cg)!=EOF){
-			strcpy(buff[i].firstname,fname);
-			strcpy(buff[i].lastname,lname);
-			buff[i].roll = rno;
-			buff[i].cgpa = cg;
-			i++;
-		}
-		fclose(fp);
-		printf("Fetched %d records!\n",i);
-
-		printf("\n*******************************************\n");
-		printf("Shared memory looks like: \n");
-		printf("*******************************************\n");
-		for(j=0;j<i;j++){
-			printf("%s %s %d %f\n", buff[j].firstname, buff[j].lastname, buff[j].roll, buff[j].cgpa);
-		}
-		printf("*******************************************\n");
-		printf("*******************************************\n");
-
 		sleep(5);
+
+		if(change){
+			change = 0;
+			
+			FILE *fp;
+			fp = fopen(filename,"w");
+			j=0;
+			while(j!=i){
+				fprintf(fp,"%s %s %d %f\n", buff[j].firstname, buff[j].lastname, buff[j].roll, buff[j].cgpa);
+				j++;
+			}
+			fclose(fp);
+
+			printf("*******************************************\n");
+			printf("Changes written back to original file!\n");
+			printf("*******************************************\n\n");
+		}
+
 	}while(1);
 
 	return 0;	
