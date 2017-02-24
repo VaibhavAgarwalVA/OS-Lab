@@ -13,11 +13,14 @@ typedef struct memo{
 	float cgpa;
 } memo;
 
-int main()
+int main(int argc, char *argv[])
 {
+	char filename[50];
+	strcpy(filename,argv[1]);
+
 	int shmid;
 	memo *buff;
-	shmid = shmget(IPC_PRIVATE, 101*sizeof(memo), IPC_CREAT | 0777);
+	shmid = shmget(2602, 101*sizeof(memo), IPC_CREAT | 0777);
 	buff = (memo *) shmat(shmid,NULL,0);
 
 	do{
@@ -25,7 +28,7 @@ int main()
 		int rno, i=0, j;
 		float cg;
 		FILE *fp;
-		fp = fopen("dataOS.txt","r");
+		fp = fopen(filename,"r");
 		while(fscanf(fp," %s %s %d %f", fname, lname, &rno, &cg)!=EOF){
 			strcpy(buff[i].firstname,fname);
 			strcpy(buff[i].lastname,lname);
