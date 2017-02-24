@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
 	char fname[20], lname[20];
 	int rno, i=0, j;
 	float cg;
+	
 	FILE *fp;
 	fp = fopen(filename,"r");
 	while(fscanf(fp," %s %s %d %f", fname, lname, &rno, &cg)!=EOF){
@@ -44,7 +45,7 @@ int main(int argc, char *argv[])
 	printf("Fetched %d records!\n",i);
 
 	sidebuff[0] = i;
-	sidebuff[1] = 1;
+	sidebuff[1] = 0;
 
 	printf("\n*******************************************\n");
 	printf("Shared memory looks like: \n");
@@ -64,7 +65,6 @@ int main(int argc, char *argv[])
 		if(change){
 			sidebuff[1] = 0;
 			
-			FILE *fp;
 			fp = fopen(filename,"w");
 			j=0;
 			while(j!=i){
@@ -72,13 +72,24 @@ int main(int argc, char *argv[])
 				j++;
 			}
 			fclose(fp);
-
+			
 			printf("*******************************************\n");
 			printf("Changes written back to original file!\n");
 			printf("*******************************************\n\n");
 		}
 
 	}while(1);
+
+	fp = fopen(filename,"r");
+	while(fscanf(fp," %s %s %d %f", fname, lname, &rno, &cg)!=EOF){
+		strcpy(buff[i].firstname,fname);
+		strcpy(buff[i].lastname,lname);
+		buff[i].roll = rno;
+		buff[i].cgpa = cg;
+		i++;
+	}
+	fclose(fp);
+	printf("Fetched %d records!\n",i);
 
 	return 0;	
 }

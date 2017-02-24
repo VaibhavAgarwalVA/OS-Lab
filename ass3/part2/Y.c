@@ -67,12 +67,12 @@ int main()
 						flag=0;
 						for(i=0;i<size;i++){
 							if(buff[i].roll==rno){
-								sidebuff[1] = 1;
 								printf("\t\tRecord found - %s %s! Please enter new GPA: ",buff[i].firstname,buff[i].lastname);
 								scanf(" %f",&gpa);
 								buff[i].cgpa = gpa;
 								printf("\tUpdated!!\n");
 								flag=1;
+								sidebuff[1] = 1;
 								break;
 							}
 						}
