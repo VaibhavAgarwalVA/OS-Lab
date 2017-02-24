@@ -1,4 +1,4 @@
-Vaibhav Agarwal 150 8.610000
+Vaibhav Agarwal 150 8.000000
 Abhishek Panigrahi 101 9.830000
 Akhil Jain 103 8.920000
 Vaishal Shah 159 9.650000

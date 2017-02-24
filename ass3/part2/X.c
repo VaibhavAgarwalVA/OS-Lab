@@ -23,6 +23,11 @@ int main(int argc, char *argv[])
 	shmid = shmget(2602, 101*sizeof(memo), IPC_CREAT | 0777);
 	buff = (memo *) shmat(shmid,NULL,0);
 
+	int shid;
+	int *sidebuff;
+	shid = shmget(2601, 2*sizeof(int), IPC_CREAT | 0777);
+	sidebuff = (int *) shmat(shid,NULL,0);
+
 	char fname[20], lname[20];
 	int rno, i=0, j;
 	float cg;
@@ -38,6 +43,9 @@ int main(int argc, char *argv[])
 	fclose(fp);
 	printf("Fetched %d records!\n",i);
 
+	sidebuff[0] = i;
+	sidebuff[1] = 1;
+
 	printf("\n*******************************************\n");
 	printf("Shared memory looks like: \n");
 	printf("*******************************************\n");
@@ -52,8 +60,9 @@ int main(int argc, char *argv[])
 	do{
 		sleep(5);
 
+		change = sidebuff[1];
 		if(change){
-			change = 0;
+			sidebuff[1] = 0;
 			
 			FILE *fp;
 			fp = fopen(filename,"w");
