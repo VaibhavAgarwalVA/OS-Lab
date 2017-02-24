@@ -2,5 +2,5 @@ Vaibhav Agarwal 150 8.610000
 Abhishek Panigrahi 101 9.830000
 Akhil Jain 103 8.930000
 Vaishal Shah 159 9.650000
-Ishaan Sang 122 8.670000
+Ishaan Sang 122 8.650000
 Krishang Garodia 128 7.320000

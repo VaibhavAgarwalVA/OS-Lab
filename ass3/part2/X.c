@@ -13,6 +13,9 @@ typedef struct memo{
 	float cgpa;
 } memo;
 
+#define P(s) semop(s, &pop, 1)
+#define V(s) semop(s, &vop, 1)
+
 int main(int argc, char *argv[])
 {
 	char filename[50];
@@ -32,6 +35,17 @@ int main(int argc, char *argv[])
 	int rno, i=0, j;
 	float cg;
 	
+	struct sembuf pop,vop;
+	int I,J;
+	I = semget(2600, 1, 0777|IPC_CREAT);
+	J = semget(2599, 1, 0777|IPC_CREAT);
+	semctl(I, 0, SETVAL, 1);
+	semctl(J, 0, SETVAL, 1);
+	pop.sem_num = vop.sem_num = 0;
+	pop.sem_flg = vop.sem_flg = 0;
+	pop.sem_op = -1; 
+	vop.sem_op = 1;
+
 	FILE *fp;
 	fp = fopen(filename,"r");
 	while(fscanf(fp," %s %s %d %f", fname, lname, &rno, &cg)!=EOF){
@@ -63,6 +77,7 @@ int main(int argc, char *argv[])
 
 		change = sidebuff[1];
 		if(change){
+			P(I);
 			sidebuff[1] = 0;
 			
 			fp = fopen(filename,"w");
@@ -72,6 +87,7 @@ int main(int argc, char *argv[])
 				j++;
 			}
 			fclose(fp);
+			V(I);
 			
 			printf("*******************************************\n");
 			printf("Changes written back to original file!\n");

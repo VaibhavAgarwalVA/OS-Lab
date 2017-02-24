@@ -13,8 +13,24 @@ typedef struct memo{
 	float cgpa;
 } memo;
 
+#define P(s) semop(s, &pop, 1)
+#define V(s) semop(s, &vop, 1)
+
 int main()
 {
+	struct sembuf pop,vop;
+	int I,J;
+	I = semget(2600, 1, 0777|IPC_CREAT);
+	J = semget(2599, 1, 0777|IPC_CREAT);
+
+	pop.sem_num = vop.sem_num = 0;
+	pop.sem_flg = vop.sem_flg = 0;
+	pop.sem_op = -1; 
+	vop.sem_op = 1;
+
+	P(J);  // this gets 1 only in X (acts as control gate)
+	V(J);  // allow other Y processes to also come inside
+
 	int shmid;
 	memo *buff;
 	shmid = shmget(2602, 101*sizeof(memo), IPC_CREAT | 0777);
@@ -31,7 +47,6 @@ int main()
 	printf("Enter 2 to MODIFY details by roll number.\n");
 	printf("Enter 3 to EXIT.\n");
 	printf("*****************************************\n");
-
 
 	do{
 		int ch,rno,i,flag;
@@ -67,12 +82,14 @@ int main()
 						flag=0;
 						for(i=0;i<size;i++){
 							if(buff[i].roll==rno){
+								P(I);
 								printf("\t\tRecord found - %s %s! Please enter new GPA: ",buff[i].firstname,buff[i].lastname);
 								scanf(" %f",&gpa);
 								buff[i].cgpa = gpa;
 								printf("\tUpdated!!\n");
 								flag=1;
 								sidebuff[1] = 1;
+								V(I);
 								break;
 							}
 						}
