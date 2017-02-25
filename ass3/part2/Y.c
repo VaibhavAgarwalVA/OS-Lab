@@ -20,25 +20,27 @@ int main()
 {
 	struct sembuf pop,vop;
 	int I,J;
-	I = semget(2600, 1, 0777|IPC_CREAT);
-	J = semget(2599, 1, 0777|IPC_CREAT);
+	I = semget(2600, 1, 0777);
+	while(I<0){
+		I = semget(2600, 1, 0777);
+	}
 
 	pop.sem_num = vop.sem_num = 0;
 	pop.sem_flg = vop.sem_flg = 0;
 	pop.sem_op = -1; 
 	vop.sem_op = 1;
 
-	P(J);  // this gets 1 only in X (acts as control gate)
-	V(J);  // allow other Y processes to also come inside
+	P(I);
+	V(I);
 
 	int shmid;
 	memo *buff;
-	shmid = shmget(2602, 101*sizeof(memo), IPC_CREAT | 0777);
+	shmid = shmget(2602, 101*sizeof(memo), 0777);
 	buff = (memo *) shmat(shmid,NULL,0);
 
 	int shid;
 	int *sidebuff;
-	shid = shmget(2601, 2*sizeof(int), IPC_CREAT | 0777);
+	shid = shmget(2601, 2*sizeof(int), 0777);
 	sidebuff = (int *) shmat(shid,NULL,0);
 
 	int size = sidebuff[0];
@@ -66,7 +68,7 @@ int main()
 							if(buff[i].roll==rno){
 								flag=1;
 								printf("\t*****************************************\n");
-								printf("\t%s %s %d %f\n",buff[i].firstname, buff[i].lastname, buff[i].roll, buff[i].cgpa);
+								printf("\tName : %s %s\n\tRoll number : %d\n\tCGPA : %.2f\n",buff[i].firstname, buff[i].lastname, buff[i].roll, buff[i].cgpa);
 								printf("\t*****************************************\n");
 								break;
 							}
@@ -82,14 +84,12 @@ int main()
 						flag=0;
 						for(i=0;i<size;i++){
 							if(buff[i].roll==rno){
-								P(I);
-								printf("\t\tRecord found - %s %s! Please enter new GPA: ",buff[i].firstname,buff[i].lastname);
+								printf("\t\tRecord found!\n\t\tName - %s %s!\n\t\tPlease enter new GPA: ",buff[i].firstname,buff[i].lastname);
 								scanf(" %f",&gpa);
 								buff[i].cgpa = gpa;
 								printf("\tUpdated!!\n");
 								flag=1;
 								sidebuff[1] = 1;
-								V(I);
 								break;
 							}
 						}
