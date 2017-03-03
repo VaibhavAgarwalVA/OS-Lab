@@ -10,13 +10,20 @@ typedef struct tdata
 {
 	int start;
 	int end;
-	int type; //0->row, 1->column
 	int tid;
 	int num;
+	int cnt;
+	int xval;
+	int times;
 } tdata;
 
 pthread_mutex_t mutex1;
+pthread_mutex_t cnt_mutex;
+pthread_mutex_t cnt_mutex1;
+pthread_cond_t cnt_cond;
+pthread_cond_t cnt_cond1;
 int myTable[INTMAX][INTMAX];
+int globalCount,globalCount1;
 
 void prettyprint(int n)
 {
@@ -50,12 +57,16 @@ void start_routine(void *p)
 	tdata *data = (tdata *) p;
 	int st = (*data).start;
 	int en = (*data).end;
-	int ty = (*data).type;
 	int id = (*data).tid;
 	int n  = (*data).num;
-	int i,j,pivot;
+	int ti = (*data).times;
+	int x = (*data).xval;
 
-	if(ty==0){
+	int i,j,pivot,k;
+
+	//printf("st=%d, en=%d, id=%d, n=%d, ti=%d, x=%d\n",st,en,id,n,ti,x);
+
+	for(k=0;k<ti;k++){
 		for(i=st;i<=en;i++){
 			pivot = myTable[i][0];
 			for(j=0;j<n;j++){
@@ -71,8 +82,23 @@ void start_routine(void *p)
 				}
 			}
 		}
-	}
-	else{
+		pthread_mutex_lock(&cnt_mutex);
+		globalCount++;
+		//printf("id=%d,globalCount=%d\n",id,globalCount);
+		while(globalCount!=x){
+			//printf("waiting id=%d\n",id);
+			pthread_cond_wait(&cnt_cond, &cnt_mutex);
+			pthread_cond_signal(&cnt_cond);
+			break;
+		}
+		if(globalCount==x){
+			//printf("unlock wala banda id=%d\n",id);
+			pthread_cond_signal(&cnt_cond);
+			globalCount=0;
+		}
+		pthread_mutex_unlock(&cnt_mutex);
+		//printf("bahar id=%d\n",id);
+
 		for(i=st;i<=en;i++){
 			pivot = myTable[n-1][i];
 			for(j=n-1;j>=0;j--){
@@ -88,8 +114,23 @@ void start_routine(void *p)
 				}
 			}
 		}
+		pthread_mutex_lock(&cnt_mutex1);
+		globalCount1++;
+		//printf("id=%d,globalCount1=%d\n",id,globalCount1);
+		while(globalCount1!=x){
+			//printf("waiting id=%d\n",id);
+			pthread_cond_wait(&cnt_cond1, &cnt_mutex1);
+			pthread_cond_signal(&cnt_cond1);
+			break;
+		}
+		if(globalCount1==x){
+			//printf("unlock wala banda id=%d\n",id);
+			pthread_cond_signal(&cnt_cond1);
+			globalCount1=0;
+		}
+		pthread_mutex_unlock(&cnt_mutex1);
+		//printf("bahar id=%d\n",id);
 	}
-
 	pthread_exit(NULL);
 }
 
@@ -97,12 +138,6 @@ int main()
 {
 	int i,j,n;
 	scanf(" %d",&n);
-	
-	// //malloc
-	// int **myTable;
-	// myTable = (int **)malloc(n*sizeof(int *));
-	// for(i=0;i<n;i++)
-	// 	myTable[i] = (int *)malloc(n*sizeof(int));
 
 	//input
 	for(i=0;i<n;i++){
@@ -121,48 +156,31 @@ int main()
 
 	pthread_t threadid[x];
 	pthread_mutex_init(&mutex1,NULL);
+	pthread_mutex_init(&cnt_mutex,NULL);
+	pthread_mutex_init(&cnt_mutex1,NULL);
+	pthread_cond_init(&cnt_cond, NULL);
+	pthread_cond_init(&cnt_cond1, NULL);
 	tdata data[x];
+	globalCount=0;
+	globalCount1=0;
 
-	for(i=0;i<k;i++){
-		for(j=0;j<x;j++){
-			data[j].start = j*(n/x);
-			data[j].end = data[j].start + n/x -1;
-			if(j==x-1)
-				data[j].end = n-1;
-			data[j].type = 0;
-			data[j].tid = j;
-			data[j].num = n;
-			pthread_create(&threadid[j],NULL,start_routine,&data[j]);
-		}
-		for(j=0;j<x;j++){
-			pthread_join(threadid[j], NULL);
-		}
-		printf("After row shift #%d\n",i+1);
-		prettyprint(n);
-		for(j=0;j<x;j++){
-			data[j].start = j*(n/x);
-			data[j].end = data[j].start + (n/x) - 1;
-			if(j==x-1)
-				data[j].end = n-1;
-			data[j].type = 1;
-			data[j].tid = j;
-			data[j].num = n;
-			pthread_create(&threadid[j],NULL,start_routine,&data[j]);
-		}
-		for(j=0;j<x;j++){
-			pthread_join(threadid[j], NULL);
-		}
-		printf("After column shift #%d\n",i+1);
-		prettyprint(n);
+	for(j=0;j<x;j++){
+		data[j].start = j*(n/x);
+		data[j].end = data[j].start + n/x -1;
+		if(j==x-1)
+			data[j].end = n-1;
+		data[j].tid = j;
+		data[j].num = n;
+		data[j].xval = x;
+		data[j].times = k;
+		pthread_create(&threadid[j],NULL,start_routine,&data[j]);
+	}
+	for(j=0;j<x;j++){
+		pthread_join(threadid[j], NULL);
 	}
 	
 	printf("FINAL TABLE :\n");
 	prettyprint(n);
-
-	// //free myTable 
-	// for(i=0;i<n;i++)
-	// 	free(myTable[i]);
-	// free(myTable);
 
 	return 1;
 }
