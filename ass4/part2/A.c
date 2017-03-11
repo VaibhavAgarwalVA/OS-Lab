@@ -5,6 +5,8 @@
 	#include <sys/shm.h>
 	#include <signal.h>
 	#include <stdlib.h>
+	#include <errno.h>
+	#include <unistd.h>
 
 	#define in  10
 	#define out 11
@@ -60,7 +62,7 @@
 		buff = (int *) shmat(shmid,NULL,0);
 
 		while(1){
-			int sleeptime = myRand(0,2);
+			int sleeptime = myRand(0,1);
 			sleep(sleeptime);
 
 			int num = myRand(-5,5);

@@ -5,6 +5,9 @@
 	#include <sys/shm.h>
 	#include <signal.h>
 	#include <stdlib.h>
+	#include <errno.h>
+	#include <unistd.h>
+	#include <pthread.h>
 
 	#define P(s); semop(s, &pop, 1)
 	#define V(s) semop(s, &vop, 1)
@@ -17,7 +20,17 @@
 	#define key_sem1  1001
 	#define key_sem2  1002
 
-	int ticket = 100;
+	int ticket  = 100;
+	int threads = 0;
+
+	typedef struct tdata
+	{	
+		int x;
+	} tdata;
+
+	pthread_mutex_t mutex1;
+
+
 
 	/**************************functions****************************/ 
 
@@ -28,9 +41,30 @@
 
 	/*******/
 
-	void book_ticket()
+	void book_ticket(void *p)
 	{
-		
+		tdata *data = (tdata *) p;
+		int req = (*data).x;
+
+		sleep(10);
+
+		if((ticket-req)>=0){
+			pthread_mutex_lock(&mutex1);
+			ticket = (ticket-req) > 100 ? 100 : (ticket-req);
+			pthread_mutex_unlock(&mutex1);
+			int sleeptime = myRand(0,2);
+			//sleep(sleeptime);
+			printf("Ticket : %d\n",ticket);
+			threads--;
+			pthread_exit((void *)1);
+		}
+		else{
+			int sleeptime = myRand(0,2);
+			//sleep(sleeptime);
+			printf("Request can't be fulfilled!\n");
+			threads--;
+			pthread_exit((void *)0);
+		}
 	}
 
 	/*******/
@@ -66,17 +100,35 @@
 
 		V(I);
 
+		tdata data[10];
+		pthread_t threadid[10];	
+		pthread_mutex_init(&mutex1,NULL);
+
 		while(1){
-			int req;
+			int req,i;
+			i=-1;
+
 			P(J);;
 			if(buff[tot]>0){
 				req = buff[buff[out]];
+				i = buff[out];
 				buff[out]++;
 				buff[out]%=10;
 				buff[tot]--;
 				printf("Processing Order : %d\n",req);
 			}
 			V(J);
+
+			if(i>=0){
+				data[i].x = req;
+				pthread_create(&threadid[i],NULL,book_ticket,&data[i]);
+				threads++;
+			}
+
+			if(threads==10){
+				while(threads>5);
+			}
+
 		}
 
 		return 0;
