@@ -50,12 +50,12 @@
 		pop.sem_op = -1; 
 		vop.sem_op = 1;
 
-		printf("Waiting for creation of shared memory!!\n")
+		// printf("Waiting for creation of shared memory!!\n")
 
 		P(I);;
 		V(I);
 
-		printf("Shared memory created and initialized!\n");
+		// printf("Shared memory created and initialized!\n");
 
 		int shmid;
 		int *buff;

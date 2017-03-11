@@ -108,7 +108,7 @@
 		buff[out] = 0;
 		buff[tot] = 0;
 
-		printf("Signal producers to start!\n");
+		// printf("Signal producers to start!\n");
 
 		V(I);
 
