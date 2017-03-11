@@ -20,19 +20,25 @@
 	#define key_sem1  1001
 	#define key_sem2  1002
 
-	int ticket  = 100;
-	int threads = 0;
-
 	typedef struct tdata
 	{	
 		int x;
 	} tdata;
 
+
+	/**************************declarations****************************/ 
+
+	int ticket  = 100;
+	int threads = 0;
+
+	int shmid;
+	int *buff;
+	struct sembuf pop,vop;
+	int I,J;
 	pthread_mutex_t mutex1;
 
 
-
-	/**************************functions****************************/ 
+	/**************************functions****************************/ 	
 
 	int myRand(int m, int n)   //returns random number between m and n (incl)
 	{
@@ -41,26 +47,34 @@
 
 	/*******/
 
+	void signalhandler(int signum)
+	{
+		shmdt(buff);
+		shmctl(shmid,IPC_RMID,0);
+		semctl(I, 0, IPC_RMID, 0);
+		semctl(J, 0, IPC_RMID, 0);
+
+		exit(-1);
+	}
+
 	void book_ticket(void *p)
 	{
 		tdata *data = (tdata *) p;
 		int req = (*data).x;
-
-		sleep(10);
 
 		if((ticket-req)>=0){
 			pthread_mutex_lock(&mutex1);
 			ticket = (ticket-req) > 100 ? 100 : (ticket-req);
 			pthread_mutex_unlock(&mutex1);
 			int sleeptime = myRand(0,2);
-			//sleep(sleeptime);
+			sleep(sleeptime);
 			printf("Ticket : %d\n",ticket);
 			threads--;
 			pthread_exit((void *)1);
 		}
 		else{
 			int sleeptime = myRand(0,2);
-			//sleep(sleeptime);
+			sleep(sleeptime);
 			printf("Request can't be fulfilled!\n");
 			threads--;
 			pthread_exit((void *)0);
@@ -71,11 +85,11 @@
 
 	int main()
 	{
+		signal(SIGINT,signalhandler);
+
 		time_t t;
 		srand(time(&t)); 
 
-		struct sembuf pop,vop;
-		int I,J;
 
 		I = semget(key_sem1, 1, 0777|IPC_CREAT);
 		semctl(I, 0, SETVAL, 0);
@@ -88,8 +102,6 @@
 		pop.sem_op = -1; 
 		vop.sem_op = 1;
 
-		int shmid;
-		int *buff;
 		shmid = shmget(key_queue, 13*sizeof(int), IPC_CREAT | 0777);
 		buff = (int *) shmat(shmid,NULL,0);
 		buff[in]  = 0;

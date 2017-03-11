@@ -23,6 +23,7 @@
 
 	/**************************functions****************************/ 
 
+
 	int myRand(int m, int n)   //returns random number between m and n (incl)
 	{
 		return m+(rand()%(n-m+1));
@@ -62,7 +63,10 @@
 		buff = (int *) shmat(shmid,NULL,0);
 
 		while(1){
-			int sleeptime = myRand(0,1);
+			if(shmget(key_queue,13*sizeof(int),0777) < 0)
+				break;
+
+			int sleeptime = myRand(0,2);
 			sleep(sleeptime);
 
 			int num = myRand(-5,5);
